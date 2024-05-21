@@ -11,6 +11,7 @@ CREATE TABLE movies (
     title VARCHAR(255) NOT NULL,
     release_year YEAR,
     description TEXT,
+    image_url VARCHAR(255), -- Column to store the URL or path to the cover image
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
