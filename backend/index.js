@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 
 // Simple route to test the server
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Connected to the database!');
 });
 
 // Route to fetch all movies
