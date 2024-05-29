@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Recommender</title>
     <link rel="stylesheet" href="styles.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Simulating user authentication check
+            const isLoggedIn = false; // Replace this with actual login check
+
+            if (!isLoggedIn) {
+                window.location.href = "login.html";
+            } else {
+                // Load React app if logged in
+                const root = document.getElementById("root");
+                if (root) {
+                    root.innerHTML = '<div id="react-app"></div>';
+                    // Assuming React app is built and served as build/static files
+                    const script = document.createElement("script");
+                    script.src = "./build/static/js/main.js"; // Adjust path as needed
+                    document.body.appendChild(script);
+                }
+            }
+        });
+    </script>
 </head>
 <body>
     <header>
