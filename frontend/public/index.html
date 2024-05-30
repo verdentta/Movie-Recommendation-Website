@@ -4,19 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Movie Recommender</title>
-    
-    
 </head>
 <body>
     <header>
         <center><h1>Movie Recommender</h1></center>
     </header>
     <aside id="sidebar">
-        <button onclick="window.location.href='login.html'">Please Log In Here</button>
+        <!-- Display username and logout button if logged in or login button if not -->
+        <div id="user-info"></div>
     </aside>
     <main id="root"></main>
     <footer>
         <center><p>&copy; 2024 Movie Recommender</p></center>
     </footer>
+    <script>
+        // Fetch session data from server
+        fetch('/session')
+            .then(response => response.json())
+            .then(data => {
+                const userInfoElement = document.getElementById('user-info');
+                if (data.isLoggedIn) {
+                    // Create the welcome message
+                    const welcomeMessage = document.createElement('div');
+                    welcomeMessage.innerText = `Welcome, ${data.username}!`;
+                    userInfoElement.appendChild(welcomeMessage);
+
+                    // Create the logout button
+                    const logoutButton = document.createElement('button');
+                    logoutButton.innerText = 'Logout';
+                    logoutButton.onclick = function() {
+                        // Send a request to logout
+                        fetch('/logout')
+                            .then(response => response.text())
+                            .then(message => {
+                                console.log(message);
+                                // Reload the page after logout
+                                window.location.reload();
+                            })
+                            .catch(error => console.error('Error:', error));
+                    };
+                    userInfoElement.appendChild(logoutButton);
+                } else {
+                    // Render the login button
+                    const loginButton = document.createElement('button');
+                    loginButton.innerText = 'Please Log In Here';
+                    loginButton.onclick = function() {
+                        window.location.href = 'login.html';
+                    };
+                    userInfoElement.appendChild(loginButton);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    </script>
 </body>
 </html>

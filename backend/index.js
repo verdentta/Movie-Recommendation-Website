@@ -36,6 +36,17 @@ app.use((req, res, next) => {
   next();
 });
 
+
+// Route to log user info when index page is loaded
+app.get('/log-user-info', (req, res) => {
+  if (req.session.isLoggedIn) {
+      console.log(`User ${req.session.username} accessed the index page`);
+      res.send('User info logged successfully');
+  } else {
+      res.send('User not logged in');
+  }
+});
+
 // Home route
 app.get('/', (req, res) => {
   if (req.session.isLoggedIn) {
