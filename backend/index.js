@@ -1,14 +1,30 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const cors = require('cors'); // Ensure you have cors middleware installed
-const db = require('./db'); // Import the database connection
+const cors = require('cors');
 const path = require('path');
+const session = require('express-session');
+const MemoryStore = require('memorystore')(session);
+const db = require('./db');
 
 const app = express();
 const port = 3000;
 
+app.engine('html', require('ejs').renderFile);
+
+// Configure session middleware
+app.use(session({
+  secret: '98asd90as90da90sd8a09sd90asd909d23kl4j',
+  resave: false,
+  saveUninitialized: false,
+  store: new MemoryStore({ checkPeriod: 86400000 }), // 24 hours
+  cookie: { maxAge: 300000 } // session timeout of 5 minutes
+}));
+
 // Middleware
-app.use(cors()); // Use CORS to handle cross-origin requests
+app.use(cors({
+  origin: 'http://localhost:3001', // Allow requests from this origin
+  credentials: true // Allow cookies to be sent
+}));
 app.use(bodyParser.json());
 
 // Serve static files from the 'public' directory
@@ -20,6 +36,36 @@ app.use((req, res, next) => {
   next();
 });
 
+// Home route
+app.get('/', (req, res) => {
+  if (req.session.isLoggedIn) {
+    console.log('User is logged in');
+  } else {
+    console.log('User is not logged in');
+  }
+  res.send('Connected to the database!');
+});
+
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send("Logged out successfully");
+    }
+  });
+});
+
+// Session route for testing
+app.get('/session', (req, res) => {
+  if (req.session.isLoggedIn) {
+    res.json({ isLoggedIn: true, username: req.session.username });
+  } else {
+    res.json({ isLoggedIn: false });
+  }
+});
+
 // Route to serve the signup page
 app.get('/signup', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'public', 'signup.html'));
@@ -28,14 +74,6 @@ app.get('/signup', (req, res) => {
 // Route to serve the login page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'public', 'login.html'));
-});
-
-
-
-
-// Simple route to test the server
-app.get('/', (req, res) => {
-  res.send('Connected to the database!');
 });
 
 // Route to fetch all movies
@@ -67,7 +105,6 @@ app.post('/movies', (req, res) => {
 // Route to register a new user
 app.post('/signup', (req, res) => {
   const { username, email, password } = req.body;
-
   const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
   db.query(query, [username, email, password], (err, results) => {
     if (err) {
@@ -82,27 +119,29 @@ app.post('/signup', (req, res) => {
 // Route to handle user login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-
-  // Query the database to check if the username and password are correct
   const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
   db.query(query, [username, password], (err, results) => {
     if (err) {
       console.error('Error authenticating user:', err.stack);
       res.status(500).send('Error authenticating user');
     } else {
-      // Check if any rows were returned from the query
       if (results.length > 0) {
-        // Authentication successful
-        res.status(200).send('Login successful'); // You can also send a token or set a session here
+        req.session.isLoggedIn = true;
+        req.session.username = username;
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            res.status(500).send('Error saving session');
+          } else {
+            res.status(200).send('Login successful');
+          }
+        });
       } else {
-        // Authentication failed
         res.status(401).send('Invalid username or password');
       }
     }
   });
 });
-
-
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);
