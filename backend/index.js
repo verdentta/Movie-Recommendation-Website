@@ -134,7 +134,7 @@ app.post('/login', (req, res) => {
   db.query(query, [username, password], (err, results) => {
     if (err) {
       console.error('Error authenticating user:', err.stack);
-      res.status(500).send('Error authenticating user');
+      res.status(500).send('Wrong Credentials, Please try again!');
     } else {
       if (results.length > 0) {
         req.session.isLoggedIn = true;
